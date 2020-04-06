@@ -1,87 +1,124 @@
-﻿# This section is for OneDrive Configuration.
-# Master Script for WVD Image Prep
-# Script authors: Chris Nylen <Chris.Nylen@microsoft.com>; John Jenner <John.Jenner@microsoft.com>, Adam Whitlatch <adam.whitlatch.microsoft.com>
-# Compliled as an example to prep a windows 10 image for user in Windows virtual desktop
-# Please use and test at your own descretion. Please note there are values specific to your environment that need to be updated
-# This is an example script not intended to be production redy without testing and configuration  
-#
-
-##Process
-
-#  Install all Apps
-#  Install FSX Agent
-#  Install Monitoring Agent
-#      Choose to Connect to Workspace
-#  Install Dependency Agent
-#  Install Sepago Agent - ITPC-LogAnalyticsAgent2
-#      <add key="CustomerId" value="Workspace ID"/>
-#      <add key="SharedKey" value="SharedKey"/>
-#      Create Sepago WS
-#     Copy Folder to Program Files Directory
-#      Modify Manifest File
-#      Run ITPC-LogAnalyticsAgent.exe -test
-#      ITPC-LogAnalyticsAgent.exe
-#      Check it connected to LA Workspace
-#      Run ITPC-LogAnalyticsAgent.exe -install
-#      Install Views
-#  Install and Configure BGinfo
-#  Run Sripts for Desktop Icon
-#  Run Sript for task bar Icons
-
-
-# Set this variable to your FSLogix profile directory
-$FSLUNC = "\\fs01\UserProfiles"
-
-#If needed - Set-ExecutionPolicy -ExecutionPolicy Unrestricted
-
-#Desktop Icons and Small Icons, Remove Search/cortana
-
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
-
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
-
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V TaskbarSmallIcons /T REG_DWORD /D 1 /F
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /V SearchboxTaskbarMode /T REG_DWORD /D 0 /F
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V TaskbarSmallIcons /T REG_DWORD /D 1 /F
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Search" /V SearchboxTaskbarMode /T REG_DWORD /D 1 /F
-
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V ShowCortanaButton /T REG_DWORD /D 0 /F
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V ShowCortanaButton /T REG_DWORD /D 0 /F
-taskkill /f /im explorer.exe
-start explorer.exe
+#####################################################################
+# Master Script for WVD Image Prep                                  #
+# Script authors:   Adam Whitlatch <adam.whitlatch.microsoft.com>   #   
+#                   Chris Nylen <Chris.Nylen@microsoft.com>         #
+#                   John Jenner <John.Jenner@microsoft.com>         #
+#                                                                   #
+# Most Recent Update Date: 04/06/2020                               #
+# Last Updated By: Adam Whitlatch                                   #
+#####################################################################
 
 
 
-#If using Marketplace image Resinstall One Drive 
+##############################################################################################################################################################
+# Below is the process I use to build my master image manually. NOTE, there are many ways to do this. You CAN use tools like SCCM, Azure Image Builder ect to build this. Azure Image builder being the most automated
+# NOTE: Windows 10 has a 8 times sysprep limit. Therefore, if you are building a master image in Azure follow this process to maintain a master image file wilout running into the sysprep limit
+# 1)  Deploy Win 10 base image from Azure Image Gallery, 
+# 2)  Make modifications, app installs, ect to image, 
+#       Re-Install Install One drive for all Users
+#       Install Office
+#       Install all Apps
+#       Run BGInfo Script
+# 3)  Reboot
+# 4)  Install FSX Agent, Azure Monitor Agent, Dependency Agents, and Sepago Agent
+#       Install FSX Agent
+#       Install Monitoring Agent - Do not connect to workspace
+#           Run Once Code at first login
+#            #MMDS
+#                $workspaceKey = "your workspace Key"
+#                $workspaceId = "Your Workspace ID"
+#                $mma = New-Object -ComObject 'AgentConfigManager.MgmtSvcCfg'
+#                $mma.AddCloudWorkspace($workspaceId, $workspaceKey)
+#                $mma.ReloadConfiguration()
+#       Install Dependency Agent
+#       Create Sepago LogAnalytics WS - search for sepago in marketplace - Only needs to be done the first time. Point all other Workspces to the same LA.
+#           Download Sepago views from github
+#           Install Views
+#           Get Workspace Id and Key info
+#       Install Sepago Agent - ITPC-LogAnalyticsAgent2
+#           Download the Sepago agent from website
+#           Extract files
+#           Copy ITPC-LogAnalyticsAgent2 Folder to Program Files Directory
+#           Modify Manifest File
+#              <add key="CustomerId" value="Your LA WokspaceID"/>
+#              <add key="SharedKey" value="youre workspace Key"/>
+#           Open Powershell or Command Prompt 
+#               Run ITPC-LogAnalyticsAgent.exe -test
+#           Verfy no errors
+#           Run ITPC-LogAnalyticsAgent.exe -install
+# 5)  Run Set small Icons Scripts & Desktop Icons Scripts
+# 6)  Run rest of this script to set common best practices for Master Images
+# 7)  Set any run at first book commands
+# 8)  Take Azure Disk Snapshot
+# 9) sysprep - gnealize and shutdown
+# 10) Updating Image - mount previous snapshot to a VM, power on, Make changes, re-install Monitoring, dependency & Sepago Agents, reboot, take a azure disk snapshot, sysprep, shutdown
+##############################################################################################################################################################
 
-# Uninstall OneDrive - download latest OneDrive exe and paste to location 
+
+$FSLUNC = "\\server\share"  # Path to your FSlogix SMB share
+$AADTenant = "az1343be-343e-1234-acfr-ab5fdf6fabcd"  #your AAD Tenant ID
+
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted
+
+################   Re-install One Drive    ########################
+#  By Default One-drive installs for single users
+# Uninstall OneDrive 
+# Download the latest OneDriveSetup.exe from Micrsoft's site https://products.office.com/en-us/onedrive/download
+# Place in a temp folder - NOTE:  Change the folder path to your copy of OneDriveSetup.exe
+# you can use the downloaded exe as the uninstall path. 
+###################################################################
+
+# Uninsall One Drive
 Run C:\temp\apps\OneDriveSetup.exe /uninstall
-
 REG ADD "HKLM\Software\Microsoft\OneDrive" /v "AllUsersInstall" /t REG_DWORD /d 1 /reg:64
+REG ADD "HKLM\Software\Microsoft\OneDrive" /v "AllUsersInstall" /t REG_DWORD /d 1 /reg:32
+REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Run" /v OneDrive /t REG_SZ /d "C:\Program Files (x86)\Microsoft OneDrive\OneDrive.exe /background" /f    #Configure OneDrive to start at sign-in for all users
 
-#Install OneDrive
+# Re- Install OneDrive
 Run C:\temp\apps\OneDriveSetup.exe /allusers
-
 REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Run" /v OneDrive /t REG_SZ /d "C:\Program Files (x86)\Microsoft OneDrive\OneDrive.exe /background" /f
 
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\OneDrive" /v "SilentAccountConfig" /t REG_DWORD /d 1 /f
-
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\OneDrive" /v "KFMSilentOptIn" /t REG_SZ /d "abc1234-343e-a2b3-8ced-ae5xyz123456" /f
-
+REG ADD "HKLM\SOFTWARE\Policies\Microsoft\OneDrive" /v "KFMSilentOptIn" /t REG_SZ /d $AADTenant /f  #uses the AADTenent variable above #Redirect and move Windows known folders to OneDrive - Make sure to change the AAD ID to match your own AAD!!!! 
+REG ADD "HKLM\SOFTWARE\Policies\Microsoft\OneDrive" /v "SilentAccountConfig" /t REG_DWORD /d 1 /f   #Silently configure user accounts
 
 
-<------------------------------Once the above is run continue to run the rest of the script---------------------------------->
-
-#Install Office - I prefer to re-install Office as well for multi-user environments
+#Install Office
 #https://docs.microsoft.com/en-us/azure/virtual-desktop/install-office-on-wvd-master-image
-C:\temp\apps\Office\Setup.exe /configure "C:\temp\apps\Office\configuration-Office365-x64.xml"
+C:\temp\apps\Office\Setup.exe /configure "C:\temp\apps\Office\configuration-Office365-x64.xml"  # use a customize Image to control which office apps are installed
 C:\temp\apps\Office\OfficeUpdates.bat
+    # rem Mount the default user registry hive
+    # reg load HKU\TempDefault C:\Users\Default\NTUSER.DAT    # rem Must be executed with default registry hive mounted
+
+    # rem Set Outlook's Cached Exchange Mode behavior
+    # reg add HKU\TempDefault\SOFTWARE\Policies\Microsoft\office\16.0\common /v InsiderSlabBehavior /t REG_DWORD /d 2 /f
+    # reg add "HKU\TempDefault\software\policies\microsoft\office\16.0\outlook\cached mode" /v enable /t REG_DWORD /d 1 /f
+    # reg add "HKU\TempDefault\software\policies\microsoft\office\16.0\outlook\cached mode" /v syncwindowsetting /t REG_DWORD /d 1 /f
+    # reg add "HKU\TempDefault\software\policies\microsoft\office\16.0\outlook\cached mode" /v CalendarSyncWindowSetting /t REG_DWORD /d 1 /f
+    # reg add "HKU\TempDefault\software\policies\microsoft\office\16.0\outlook\cached mode" /v CalendarSyncWindowSettingMonths  /t REG_DWORD /d 1 /f
+ 
+    # Set default HKCU Icons settings    
+    # reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
+    # reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
+    # reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
+    # reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
+    # reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V TaskbarSmallIcons /T REG_DWORD /D 1 /F
+    # reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /V SearchboxTaskbarMode /T REG_DWORD /D 0 /F
+    # reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V ShowCortanaButton /T REG_DWORD /D 0 /F
+    
+    # rem Unmount the default user registry hive
+    # reg unload HKU\TempDefault
+
+    # rem Set the Office Update UI behavior.
+    # reg add HKLM\SOFTWARE\Policies\Microsoft\office\16.0\common\officeupdate /v hideupdatenotifications /t REG_DWORD /d 1 /f
+    # reg add HKLM\SOFTWARE\Policies\Microsoft\office\16.0\common\officeupdate /v hideenabledisableupdates /t REG_DWORD /d 1 /f
+
+
+#Add Registry Entry to BGinfo
+REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "bginfo" /t REG_SZ /d "C:\temp\apps\BGInfo\bginfo.bat" /f
+
+
+#          <<<----------------------------   Proceed Below after all app installs and configs  ---------------------------->>>
+
 
 #disable Windows Defender Scanning of VHD
 https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defender-antivirus/configure-extension-file-exclusions-windows-defender-antivirus
@@ -89,50 +126,34 @@ https://docs.microsoft.com/en-us/windows/security/threat-protection/windows-defe
         Extension Exclusions:  .vhd, .vhdx
         Turn Off Auto Exclusion: Disabled
 
-#Add Registry Entry to BGinfo
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "bginfo" /t REG_SZ /d "C:\temp\apps\BGInfo\bginfo.bat" /f
-
-
-# The following steps are from: https://docs.microsoft.com/en-us/azure/virtual-desktop/set-up-customize-master-image
-# Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 
 Write-Host "This script will prepare your image for capture and eventual upload to Azure."
 
 Write-Host "Disabling Automatic Updates..."
 reg add HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU /v NoAutoUpdate /t REG_DWORD /d 1 /f
 
-Write-Host "Setting OneDrive for Business policies"
-#Configure OneDrive to start at sign-in for all users
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Run" /v OneDrive /t REG_SZ /d "C:\Program Files (x86)\Microsoft OneDrive\OneDrive.exe /background" /f
-#Silently configure user accounts
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\OneDrive" /v "SilentAccountConfig" /t REG_DWORD /d 1 /f
-#Redirect and move Windows known folders to OneDrive - Make sure to change the AAD ID to match your own AAD!!!! 
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\OneDrive" /v "KFMSilentOptIn" /t REG_SZ /d "abc1234-343e-a2b3-8ced-ae5xyz123456" /f
 
 # Skiprearm for windows activation after sysprepping
-#Now open Regedit and go to the following key:
+REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\Currentversion\SL" /v ""
 
-#REG ADD "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\Currentversion\SL" /v ""
 
 # Configure session timeout policies
 Write-Host "Configuring session timeout policies..."
+#one minute = 60000  https://www.sevenforums.com/tutorials/118886-remote-desktop-set-time-limit-active-sessions.html
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v RemoteAppLogoffTimeLimit /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v fResetBroken /t REG_DWORD /d 1 /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v MaxConnectionTime /t REG_DWORD /d 28800000 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v MaxConnectionTime /t REG_DWORD /d 28800000 /f  # 8 Hours
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v RemoteAppLogoffTimeLimit /t REG_DWORD /d 0 /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v MaxDisconnectionTime /t REG_DWORD /d 14400000 /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v MaxIdleTime /t REG_DWORD /d 7600000 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v MaxDisconnectionTime /t REG_DWORD /d 14400000 /f  #4 hours
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v MaxIdleTime /t REG_DWORD /d 7200000 /f  #2 hours
 
 # Enable timezone redirection
-Write-Host "Enabling time zone redirection..."
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Terminal Services" /v fEnableTimeZoneRedirection /t REG_DWORD /d 1 /f
 
 # Disable Storage Sense
-Write-Host "Disabling Storage Sense..."
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy" /v 01 /t REG_DWORD /d 0 /f
 
 # The following steps are from: https://docs.microsoft.com/en-us/azure/virtual-machines/windows/prepare-for-upload-vhd-image
-Write-Host "Preparing image for upload to Azure..."
 
 # Remove the WinHTTP proxy
 netsh winhttp reset proxy
@@ -211,57 +232,47 @@ Set-NetFirewallRule -DisplayName "File and Printer Sharing (Echo Request - ICMPv
 # Add Defender exclusion for FSLogix
 Add-MpPreference -ExclusionPath $FSLUNC
 
-#Add FSLogix settings
 
-$FSLUNC = "\\fs01\UserProfiles"
+########################################
+#      FSLogix Profile Settings        #
+########################################
+# be sure to set the FSLogix Variable above
+# $FSLUNC = "\\server\share"  # Path to your FSlogix SMB share Link to share/directory permissions   https://docs.microsoft.com/en-us/fslogix/fslogix-storage-config-ht
 New-Item -Path HKLM:\Software\FSLogix\ -Name Profiles -Force
 New-Item -Path HKLM:\Software\FSLogix\Profiles\ -Name Apps -Force
 Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "Enabled" -Type "Dword" -Value "1"
 New-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "VHDLocations" -Value $FSLUNC -PropertyType MultiString -Force
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "SizeInMBs" -Type "Dword" -Value "15360"
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "IsDynamic" -Type "Dword" -Value "1"
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "VolumeType" -Type String -Value "vhd"
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "LockedRetryCount" -Type "Dword" -Value "12"
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "LockedRetryInterval" -Type "Dword" -Value "5"
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "ProfileType" -Type "Dword" -Value "3"
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "ConcurrentUserSessions" -Type "Dword" -Value "1"
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "RoamSearch" -Type "Dword" -Value "2" 
-New-ItemProperty -Path HKLM:\Software\FSLogix\Profiles\Apps -Name "RoamSearch" -Type "Dword" -Value "2"
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "RoamSearch" -Type "Dword" -Value "2"
+Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "SizeInMBs" -Type "Dword" -Value "10240"  #10GB in MB - always better to oversize - FSlogix Overwrites deleted blocks first then new blocks. Should be hire if not using OneDrive 
+Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "VolumeType" -Type String -Value "vhdx"  # NOTE:  this should be set to "vhd" for Win 7 and Sever 2102R2
+Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "ProfileType" -Type "Dword" -Value "3"  # Machine should try to take the RW role and if it can't, it should fall back to a RO role.
+Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "FlipFlopProfileDirectoryName" -Type "Dword" -Value "1"  #Cosmetic change the way each user folder is created
 
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "VolumeType" -Type String -Value "vhd"
+# Optional FSLogix Settings
+#Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "ConcurrentUserSessions" -Type "Dword" -Value "1"   # Concurrent sessions if you want to use the same profile for published apps & Desktop Should log into Desktop session first
+#Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "ProfileType" -Type "Dword" -Value "3"     #this should only be used if Concurrent User Settings is set  # Machine should try to take the RW role and if it can't, it should fall back to a RO role.
 
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "FlipFlopProfileDirectoryName" -Type "Dword" -Value "1" 
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "SIDDirNamePattern" -Type String -Value "%username%%sid%"
-Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "SIDDirNameMatch" -Type String -Value "%username%%sid%"
+#New-ItemProperty -Path HKLM:\Software\FSLogix\Profiles\Apps -Name "RoamSearch" -Type "Dword" -Value "2"  # Only for Server 2012R2 and Server 2016 Leave Defaul to 0
+#Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "RoamSearch" -Type "Dword" -Value "2"  # Only for Server 2012R2 and Server 2016 Leave Defaul to 0
+#Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "DeleteLocalProfileWhenVHDShouldApply"  -Type "Dword" -Value "0"   # OPTIONAL 0 = no deleton - 1 = deletion - This will deliete existing profiles
 
 
+#set FSX Office Container
+Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "Enabled" -Type "Dword" -Value "1"
+New-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "VHDLocations" -Value $FSLUNC -PropertyType MultiString -Force
+Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "SizeInMBs" -Type "Dword" -Value "25600"  # 25GBin MB - always better to oversize - FSlogix Overwrites deleted blocks first then new blocks 
+Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "VolumeType" -Type String -Value "vhdx"  #this shoudl be set to "vhd" for Win 7 and Sever 2102R2
+Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "FlipFlopProfileDirectoryName" -Type "Dword" -Value "1" 
+#Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "DeleteLocalProfileWhenVHDShouldApply"  -Type "Dword" -Value "0" #nodeleton - 1 yes deletion
 
-
-# Launch Sysprep
-# Write-Host "We'll now launch Sysprep."
-# C:\Windows\System32\Sysprep\Sysprep.exe /generalize /oobe /shutdown
-
-<------------------------------------------------------------------------------------------->
-
-# Windows Store disable setting
-# Start the registry editor (regedit.exe).
-# New-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\WindowsStore\ -Name "DisableStoreApps" -Type "Dword" -Value "1"
-
-# WVD CLient 
-# REG ADD HKLM\Software\Microsoft\MSRDC\Policies /t REG_SZ /v ReleaseRing /d insider /f
-
-#Specify Start Layout for Win 10
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /v SpecialRoamingOverrideAllowed /t REG_DWORD /d 1 /f
 
 #For feedback hub collection of telemetry data on Windows 10 Enterprise multi-session, run this command
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v AllowTelemetry /t REG_DWORD /d 3 /f
 
 
-#Run the following command to fix Watson crashes:
+# Fix Watson crashes:
 Remove-Item -Path "HKCU:\SOFTWARE\Microsoft\Windows\Windows Error Reporting\CorporateWerServer*"
 
-#Enter the following commands into the registry editor to fix 5k resolution support
+# Enter the following commands into the registry editor to fix 5k resolution support
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v MaxMonitors /t REG_DWORD /d 4 /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v MaxXResolution /t REG_DWORD /d 5120 /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" /v MaxYResolution /t REG_DWORD /d 2880 /f
@@ -272,3 +283,45 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\rdp-s
 
 #workaround for win10 BiSrv issue
 schtasks /change /tn "\Microsoft\Windows\BrokerInfrastructure\BgTaskRegistrationMaintenanceTask" /disable
+
+
+
+# Cosmetic Only for my environment
+
+# Desktop Icons and Small Icons, Remove Search/cortana
+
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
+REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
+REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
+
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
+REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
+REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
+
+REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V TaskbarSmallIcons /T REG_DWORD /D 1 /F
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /V SearchboxTaskbarMode /T REG_DWORD /D 0 /F
+REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V TaskbarSmallIcons /T REG_DWORD /D 1 /F
+REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Search" /V SearchboxTaskbarMode /T REG_DWORD /D 1 /F
+
+REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V ShowCortanaButton /T REG_DWORD /D 0 /F
+REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V ShowCortanaButton /T REG_DWORD /D 0 /F
+taskkill /f /im explorer.exe
+start explorer.exe
+
+#Specify Start Layout for Win 10
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /v SpecialRoamingOverrideAllowed /t REG_DWORD /d 1 /f
+
+
+# Launch Sysprep
+# Write-Host "We'll now launch Sysprep."
+# C:\Windows\System32\Sysprep\Sysprep.exe /generalize /oobe /shutdown
+
+<------------------------------------------------------------------------------------------->
+
+
+
+
+
+
