@@ -63,13 +63,18 @@
                 "type": "PowerShell",
                 "name": "AppInstalls",
                 "runElevated": false,
-                "scriptUri": "https://awclabsimagebuilder.blob.core.windows.net/applications/applicationsinstall.ps1?sp=r&st=2020-06-04T08:20:21Z&se=2020-06-04T16:20:21Z&spr=https&sv=2019-10-10&sr=b&sig=aIYdwUfm6MZojlGwz421M1hkWpSneFBbnZcO95cDZHY%3D"
+                "scriptUri": "https://awclabsimagebuilder.blob.core.windows.net/applications/applicationsinstall.ps1?sp=r&st=2020-06-04T08:40:35Z&se=2020-06-04T16:40:35Z&spr=https&sv=2019-10-10&sr=b&sig=eRU4cG%2Ff2rWTzmPShei1R5dQY7yaCFDLUYRPLJXHAxs%3D"
             },
             {
                 "type": "File",
                 "name": "downloadBuildArtifacts",
                 "sourceUri": "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/exampleArtifacts/buildArtifacts/index.html",
                 "destination":"c:\\buildArtifacts\\index.html"
+            },
+            {
+                "type": "WindowsRestart",
+                "restartCheckCommand": "echo Azure-Image-Builder-Restarted-the-VM  > c:\\buildArtifacts\\azureImageBuilderRestart.txt",
+                "restartTimeout": "5m"
             }
         ],
         "distribute": 
