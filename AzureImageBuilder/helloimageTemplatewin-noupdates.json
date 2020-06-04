@@ -61,9 +61,9 @@
             },
             {
                 "type": "PowerShell",
-                "name": "CreateBuildPath",
+                "name": "AppInstalls",
                 "runElevated": false,
-                "scriptUri": "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/testPsScript.ps1"
+                "scriptUri": "https://awclabsimagebuilder.blob.core.windows.net/applications/applicationsinstall.ps1?sp=r&st=2020-06-04T08:20:21Z&se=2020-06-04T16:20:21Z&spr=https&sv=2019-10-10&sr=b&sig=aIYdwUfm6MZojlGwz421M1hkWpSneFBbnZcO95cDZHY%3D"
             },
             {
                 "type": "File",
