@@ -56,7 +56,7 @@
             {
                 "type": "PowerShell",
                 "name": "CreateBuildPath",
-                "runElevated": false,
+                "runElevated": true,
                 "scriptUri": "https://raw.githubusercontent.com/whitscripts/wvd/master/AzureImageBuilder/applicationsinstallpublic.ps1"
             },
             {
