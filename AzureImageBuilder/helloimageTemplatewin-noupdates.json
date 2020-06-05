@@ -1,4 +1,4 @@
-﻿{
+{
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
@@ -40,7 +40,7 @@
 
         "vmProfile": 
                 {
-                "vmSize": "Standard_D1_v2",
+                "vmSize": "Standard_D2s_v3",
                 "osDiskSizeGB": 127
                 },
         
@@ -53,41 +53,24 @@
             
         },
         "customize": [
+
+
             {
                 "type": "PowerShell",
                 "name": "CreateBuildPath",
-                "runElevated": false,
                 "scriptUri": "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/testPsScript.ps1"
             },
             {
                 "type": "PowerShell",
-                "name": "CreateLocalAdmin",
-                "runElevated": false,
-                "scriptUri": "https://raw.githubusercontent.com/whitscripts/wvd/master/AzureImageBuilder/CreateTempUser.ps1"
-            },
-            {
-                "type": "PowerShell",
                 "name": "AppInstalls",
-                "runElevated": false,
-                "scriptUri": "https://awclabsimagebuilder.blob.core.windows.net/applications/applicationsinstall.ps1?sp=r&st=2020-06-04T08:40:35Z&se=2020-06-04T16:40:35Z&spr=https&sv=2019-10-10&sr=b&sig=eRU4cG%2Ff2rWTzmPShei1R5dQY7yaCFDLUYRPLJXHAxs%3D"
+                "runElevated": true,
+                "scriptUri": "https://awclabsimagebuilder.blob.core.windows.net/applications/applicationsinstallpublic.ps1"
             },
             {
                 "type": "File",
                 "name": "downloadBuildArtifacts",
                 "sourceUri": "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/exampleArtifacts/buildArtifacts/index.html",
                 "destination":"c:\\buildArtifacts\\index.html"
-            },
-            {
-                "type": "PowerShell",
-                "name": "InstallCustomize",
-                "runElevated": false,
-                "scriptUri": "https://awclabsimagebuilder.blob.core.windows.net/applications/applicationsinstall.ps1?sp=r&st=2020-06-05T00:46:17Z&se=2020-12-31T09:46:17Z&spr=https&sv=2019-10-10&sr=b&sig=vl3MXygRFcTazB2MVitkfBxwWGad%2F81ePqcfOXPaGYU%3D",
-            },
-            {
-                "type": "PowerShell",
-                "name": "RemoveTempUser",
-                "runElevated": false,
-                "scriptUri": "https://raw.githubusercontent.com/whitscripts/wvd/master/AzureImageBuilder/RemoveTempUser.ps1"
             },
             {
                 "type": "WindowsRestart",
