@@ -1,0 +1,1 @@
+﻿Remove-LocalUser -Name "imagebuilder"
