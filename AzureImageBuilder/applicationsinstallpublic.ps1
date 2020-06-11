@@ -41,7 +41,7 @@ Start-Process "C:\temp\apps2\apps\InstallDependencyAgent-Windows.exe" -Wait -Arg
 # The following steps are from: https://docs.microsoft.com/en-us/azure/virtual-desktop/set-up-customize-master-image
 # https://docs.microsoft.com/en-us/azure/virtual-desktop/install-office-on-wvd-master-image
 
-Set-ExecutionPolicy -ExecutionPolicy Unrestricted
+#Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 
 REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "bginfo" /t REG_SZ /d "C:\temp\apps2\apps\BGInfo\bginfo.bat" /f
 
