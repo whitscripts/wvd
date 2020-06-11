@@ -1,8 +1,7 @@
-﻿<# 
-    Script created by Adam Whitlatch - adam.whitlatch@microsoft.com
-    
-    Updated 06/04/2020
-#>
+#    Script created by Adam Whitlatch - adam.whitlatch@microsoft.com
+#    
+#    Updated 06/04/2020
+#
 
 mkdir c:\buildArtifacts
 echo Azure-Image-Builder-Was-Here  > c:\buildArtifacts\azureImageBuilder.txt
@@ -14,29 +13,29 @@ New-Item -Path 'C:\temp' -ItemType Directory -Force | Out-Null
 Invoke-WebRequest -Uri "https://awclabsimagebuilder.blob.core.windows.net/applications/AppInstallers.zip" -OutFile "c:\temp\apps.zip"
 Expand-Archive -Path 'C:\temp\apps.zip' -DestinationPath 'C:\temp' -Force
 
-Start-Process "C:\temp\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
+Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
 
 #Install Applications for Azure Image Builder script
 Write-Host "Install Microsoft Edge 77"
-Start-Process "C:\temp\apps\MicrosoftEdgeSetup.exe" -Wait -ArgumentList '/install /quiet"'
+Start-Process "C:\temp\apps2\apps\MicrosoftEdgeSetup.exe" -Wait -ArgumentList '/install /quiet"'
 Write-Host "Install Notepad++"
-Start-Process "C:\temp\apps\npp.7.7.1.Installer.x64.exe" -Wait -ArgumentList '/S'
+Start-Process "C:\temp\apps2\apps\npp.7.7.1.Installer.x64.exe" -Wait -ArgumentList '/S'
 Write-Host "Install FSLogix Agent"
-Start-Process "C:\temp\apps\FSLogix_Apps_2.9.7237.48865\x64\Release\FSLogixAppsSetup.exe" -Wait -ArgumentList '/install /quiet'
+Start-Process "C:\temp\apps2\apps\FSLogix_Apps_2.9.7237.48865\x64\Release\FSLogixAppsSetup.exe" -Wait -ArgumentList '/install /quiet'
 Write-Host "Install FSLogix Rule Editor"
-Start-Process "C:\temp\apps\FSLogix_Apps_2.9.7237.48865\x64\Release\FSLogixAppsRuleEditorSetup.exe" -Wait -ArgumentList '/install /quiet'
+Start-Process "C:\temp\apps2\apps\FSLogix_Apps_2.9.7237.48865\x64\Release\FSLogixAppsRuleEditorSetup.exe" -Wait -ArgumentList '/install /quiet'
 Write-Host "Install FSLogix Java Editor"
-Start-Process "C:\temp\apps\FSLogix_Apps_2.9.7237.48865\x64\Release\FSLogixAppsJavaRuleEditorSetup.exe" -Wait -ArgumentList '/install /quiet'
+Start-Process "C:\temp\apps2\apps\FSLogix_Apps_2.9.7237.48865\x64\Release\FSLogixAppsJavaRuleEditorSetup.exe" -Wait -ArgumentList '/install /quiet'
 #Write-Host "Install Office"
-#Start-Process "C:\temp\apps\files\Setup.exe" -Wait -ArgumentList '/configure c:\temp\files\configurationwvd.xml'
+#Start-Process "C:\temp\apps2\apps\files\Setup.exe" -Wait -ArgumentList '/configure C:\temp\apps2\files\configurationwvd.xml'
 #Write-Host "Install OneDrive"
-#Start-Process "C:\temp\apps\files\OneDriveSetup.exe" -Wait -ArgumentList '/allusers'
+#Start-Process "C:\temp\apps2\apps\files\OneDriveSetup.exe" -Wait -ArgumentList '/allusers'
 Write-Host "Install Sepago"
-Start-Process "C:\temp\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
+Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
 Write-Host "Install Service Map"
-Start-Process "C:\temp\apps\InstallDependencyAgent-Windows.exe" -Wait -ArgumentList '/S'
+Start-Process "C:\temp\apps2\apps\InstallDependencyAgent-Windows.exe" -Wait -ArgumentList '/S'
 
-<#--------------------------------Sysprep---------------------------#>
+#--------------------------------Sysprep---------------------------#
 
 
 # The following steps are from: https://docs.microsoft.com/en-us/azure/virtual-desktop/set-up-customize-master-image
@@ -44,7 +43,7 @@ Start-Process "C:\temp\apps\InstallDependencyAgent-Windows.exe" -Wait -ArgumentL
 
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "bginfo" /t REG_SZ /d "C:\temp\apps\BGInfo\bginfo.bat" /f
+REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "bginfo" /t REG_SZ /d "C:\temp\apps2\apps\BGInfo\bginfo.bat" /f
 
 # Set this variable to your FSLogix profile directory
 $FSLUNC = "\\wu2awclabsfiles1.file.core.windows.net\profiles"
@@ -126,9 +125,6 @@ Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\W
 # Limit number of concurrent sessions
 Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\Winstations\RDP-Tcp' -name "MaxInstanceCount" -Value 4294967295 -Type DWord -force
 
-# Remove any self signed certs
-Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "SSLCertificateSHA1Hash" -force
-
 # Turn on Firewall
 Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
 
@@ -179,47 +175,169 @@ Set-ItemProperty -Path HKLM:\Software\FSLogix\Profiles -Name "FlipFlopProfileDir
 
 
 #set FSX Office Container
+New-Item -Path HKLM:\SOFTWARE\Policies\FSLogix\ -Name ODFC -Force
 Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "Enabled" -Type "Dword" -Value "1"
 New-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "VHDLocations" -Value $FSLUNC -PropertyType MultiString -Force
-Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "SizeInMBs" -Type "Dword" -Value "25600"  # 25GBin MB - always better to oversize - FSlogix Overwrites deleted blocks first then new blocks 
-Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "VolumeType" -Type String -Value "vhdx"  #this shoudl be set to "vhd" for Win 7 and Sever 2102R2
-Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "FlipFlopProfileDirectoryName" -Type "Dword" -Value "1" 
+new-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "SizeInMBs" -Type "Dword" -Value "25600"  # 25GBin MB - always better to oversize - FSlogix Overwrites deleted blocks first then new blocks 
+new-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "VolumeType" -Type String -Value "vhdx"  #this shoudl be set to "vhd" for Win 7 and Sever 2102R2
+new-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "FlipFlopProfileDirectoryName" -Type "Dword" -Value "1" 
 #Set-ItemProperty -Path HKLM:\SOFTWARE\Policies\FSLogix\ODFC -Name "DeleteLocalProfileWhenVHDShouldApply"  -Type "Dword" -Value "0" #nodeleton - 1 yes deletion
 
 
 
 # Some settings taken from https://www.robinhobo.com/how-to-start-onedrive-and-automatically-sign-in-when-using-a-remoteapp-in-windows-virtual-desktop-wvd/
-Write-Host "Setting OneDrive for Business policies" Run this after you install One Drive
+#Write-Host "Setting OneDrive for Business policies" Run this after you install One Drive
 #Configure OneDrive to start at sign-in for all users
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Run" /v OneDrive /t REG_SZ /d "C:\Program Files (x86)\Microsoft OneDrive\OneDrive.exe /background" /f
+#REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Run" /v OneDrive /t REG_SZ /d "C:\Program Files (x86)\Microsoft OneDrive\OneDrive.exe /background" /f
 #Silently configure user accounts
-REG ADD "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive" /v "SilentAccountConfig" /t REG_DWORD /d 1 /f
-REG ADD "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive" /v "FilesOnDemandEnabled" /t REG_DWORD /d 1 /f
-REG ADD "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive" /v "EnableADAL" /t REG_DWORD /d 2 /f
-New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\" -Name RailRunonce -Force
-New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\RailRunonce\" -Name "OneDrive" -Force
-Set-ItemProperty -Path "HKLM:SYSTEM\CurrentControlSet\Control\Terminal Server\RailRunonce\" -Name "OneDrive" -Value "C:\Program Files (x86)\Microsoft OneDrive\OneDrive.exe /background" -Type String
-REG ADD "HKLM\SOFTWARE\Policies\Microsoft\OneDrive" /v "KFMSilentOptIn" /t REG_SZ /d "YOUR AAD ID GOES HERE" /f 
+#REG ADD "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive" /v "SilentAccountConfig" /t REG_DWORD /d 1 /f
+#REG ADD "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive" /v "FilesOnDemandEnabled" /t REG_DWORD /d 1 /f
+#REG ADD "HKLM:\SOFTWARE\Policies\Microsoft\OneDrive" /v "EnableADAL" /t REG_DWORD /d 2 /f
+#New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\" -Name RailRunonce -Force
+#New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\RailRunonce\" -Name "OneDrive" -Force
+#Set-ItemProperty -Path "HKLM:SYSTEM\CurrentControlSet\Control\Terminal Server\RailRunonce\" -Name "OneDrive" -Value "C:\Program Files (x86)\Microsoft OneDrive\OneDrive.exe /background" -Type String
+#REG ADD "HKLM\SOFTWARE\Policies\Microsoft\OneDrive" /v "KFMSilentOptIn" /t REG_SZ /d "YOUR AAD ID GOES HERE" /f 
 
 
 # Desktop Icons and Small Icons, Remove Search/cortana
+Try
+{
+new-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type "Dword" -Value "0" 
+}
 
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" /t REG_DWORD /d 0
+Try
+{
+new-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type "Dword" -Value "0" 
+}
 
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu" /v "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" /t REG_DWORD /d 0
+Try
+{
+new-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type "Dword" -Value "0" 
+}
 
-REG ADD "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V TaskbarSmallIcons /T REG_DWORD /D 1 /F
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Search" /V SearchboxTaskbarMode /T REG_DWORD /D 0 /F
-REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V TaskbarSmallIcons /T REG_DWORD /D 1 /F
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Search" /V SearchboxTaskbarMode /T REG_DWORD /D 1 /F
+Try
+{
+new-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Type "Dword" -Value "0" 
+}
 
-REG ADD "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V ShowCortanaButton /T REG_DWORD /D 0 /F
-REG ADD "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /V ShowCortanaButton /T REG_DWORD /D 0 /F
-taskkill /f /im explorer.exe
-start explorer.exe
+
+
+
+Try
+{
+new-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" -Type "Dword" -Value "0" 
+}
+
+Try
+{
+new-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu -Name "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu -Name "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" -Type "Dword" -Value "0" 
+}
+
+Try
+{
+new-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel -Name "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" -Type "Dword" -Value "0" 
+}
+
+Try
+{
+new-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu -Name "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\ClassicStartMenu -Name "{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}" -Type "Dword" -Value "0" 
+}
+
+
+
+
+
+
+Try
+{
+new-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name "TaskbarSmallIcons" -Type "Dword" -Value "1" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name "TaskbarSmallIcons" -Type "Dword" -Value "1" 
+}
+
+Try
+{
+new-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name "TaskbarSmallIcons" -Type "Dword" -Value "1" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name "TaskbarSmallIcons" -Type "Dword" -Value "1" 
+}
+
+
+
+
+
+Try
+{
+new-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name "SearchboxTaskbarMode" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Search -Name "SearchboxTaskbarMode" -Type "Dword" -Value "0" 
+}
+
+Try
+{
+new-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Search -Name "SearchboxTaskbarMode" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Search -Name "SearchboxTaskbarMode" -Type "Dword" -Value "0" 
+}
+
+
+
+
+Try{
+new-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name "ShowCortanaButton" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name "ShowCortanaButton" -Type "Dword" -Value "0" 
+}
+
+Try
+{
+new-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name "ShowCortanaButton" -Type "Dword" -Value "0" -ErrorAction Stop
+}
+Catch
+{
+set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced -Name "ShowCortanaButton" -Type "Dword" -Value "0" 
+}
+
+
