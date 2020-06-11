@@ -10,14 +10,14 @@ echo Azure-Image-Builder-Was-Here  > c:\buildArtifacts\azureImageBuilder.txt
 # Workshop install apps demo example
 ### Download Application Packages
 New-Item -Path 'C:\temp' -ItemType Directory -Force | Out-Null
-Invoke-WebRequest -Uri "https://awclabsimagebuilder.blob.core.windows.net/applications/AppInstallers.zip" -OutFile "c:\temp\apps.zip"
+Invoke-WebRequest -Uri "https://awclabsimagebuilder.blob.core.windows.net/applications/AppInstallers2.zip" -OutFile "c:\temp\apps.zip"
 Expand-Archive -Path 'C:\temp\apps.zip' -DestinationPath 'C:\temp' -Force
 
 Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
 
 #Install Applications for Azure Image Builder script
-Write-Host "Install Microsoft Edge 77"
-Start-Process "C:\temp\apps2\apps\MicrosoftEdgeSetup.exe" -Wait -ArgumentList '/install /quiet"'
+Write-Host "Install Microsoft Edge"
+Start-Process msiexec.exe -ArgumentList "/I c:\temp\files\MicrosoftEdgeEnterpriseX64.msi /quiet"
 Write-Host "Install Notepad++"
 Start-Process "C:\temp\apps2\apps\npp.7.7.1.Installer.x64.exe" -Wait -ArgumentList '/S'
 Write-Host "Install FSLogix Agent"
