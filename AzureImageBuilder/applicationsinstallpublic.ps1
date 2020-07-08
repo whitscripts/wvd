@@ -10,7 +10,7 @@ echo Azure-Image-Builder-Was-Here  > c:\buildArtifacts\azureImageBuilder.txt
 # Workshop install apps demo example
 ### Download Application Packages
 New-Item -Path 'C:\temp' -ItemType Directory -Force | Out-Null
-Invoke-WebRequest -Uri "https://awclabsimagebuilder.blob.core.windows.net/applications/AppInstallers2.zip" -OutFile "c:\temp\apps.zip"
+Invoke-WebRequest -Uri "https://wvdlabs.blob.core.windows.net/applications/AppInstallers2.zip" -OutFile "c:\temp\apps.zip"
 Expand-Archive -Path 'C:\temp\apps.zip' -DestinationPath 'C:\temp' -Force
 
 Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
@@ -46,7 +46,7 @@ Start-Process "C:\temp\apps2\apps\InstallDependencyAgent-Windows.exe" -Wait -Arg
 REG ADD "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "bginfo" /t REG_SZ /d "C:\temp\apps2\apps\BGInfo\bginfo.bat" /f
 
 # Set this variable to your FSLogix profile directory
-$FSLUNC = "\\wu2awclabsfiles1.file.core.windows.net\profiles"
+$FSLUNC = "\\wvdlabs.file.core.windows.net\profiles"
 
 Write-Host "This script will prepare your image for capture and eventual upload to Azure."
 
