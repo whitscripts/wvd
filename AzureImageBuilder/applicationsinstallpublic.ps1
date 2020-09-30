@@ -13,13 +13,13 @@ New-Item -Path 'C:\temp' -ItemType Directory -Force | Out-Null
 Invoke-WebRequest -Uri "https://awcimg.blob.core.windows.net/applications/apps.zip" -OutFile "c:\temp\apps.zip"
 Expand-Archive -Path 'C:\temp\apps.zip' -DestinationPath 'C:\temp' -Force
 
-Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
+#Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
 
 #Install Applications for Azure Image Builder script
 Write-Host "Install Microsoft Edge"
 Start-Process msiexec.exe -ArgumentList "/I C:\temp\apps\MicrosoftEdgeEnterpriseX64.msi /quiet"
 
-Write-Host "Install Microsoft Edge"
+Write-Host "Install WebRTC"
 Start-Process msiexec.exe -ArgumentList "/I C:\temp\apps\MsRdcWebRTCSvc_HostSetup_1.0.2006.11001_x64.msi /quiet"
 
 Write-Host "Install Notepad++"
@@ -38,8 +38,8 @@ Start-Process "C:\temp\apps\FSLogix_Apps_2.9.7349.30108\FSLogixAppsJavaRuleEdito
 #Start-Process "C:\temp\apps2\apps\files\Setup.exe" -Wait -ArgumentList '/configure C:\temp\apps2\files\configurationwvd.xml'
 #Write-Host "Install OneDrive"
 #Start-Process "C:\temp\apps2\apps\files\OneDriveSetup.exe" -Wait -ArgumentList '/allusers'
-Write-Host "Install Sepago"
-Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
+#Write-Host "Install Sepago"
+#Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
 
 Write-Host "Install Dependency Agent"
 Start-Process "C:\temp\apps\InstallDependencyAgent-Windows.exe" -Wait -ArgumentList '/S'
