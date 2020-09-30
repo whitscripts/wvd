@@ -17,23 +17,40 @@ Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\I
 
 #Install Applications for Azure Image Builder script
 Write-Host "Install Microsoft Edge"
-Start-Process msiexec.exe -ArgumentList "/I c:\temp\files\MicrosoftEdgeEnterpriseX64.msi /quiet"
+Start-Process msiexec.exe -ArgumentList "/I C:\temp\apps\MicrosoftEdgeEnterpriseX64.msi /quiet"
+
+Write-Host "Install Microsoft Edge"
+Start-Process msiexec.exe -ArgumentList "/I C:\temp\apps\MsRdcWebRTCSvc_HostSetup_1.0.2006.11001_x64.msi /quiet"
+
 Write-Host "Install Notepad++"
-Start-Process "C:\temp\apps2\apps\npp.7.7.1.Installer.x64.exe" -Wait -ArgumentList '/S'
+Start-Process "C:\temp\apps\npp.7.8.8.Installer.x64.exe" -Wait -ArgumentList '/S'
+
 Write-Host "Install FSLogix Agent"
-Start-Process "C:\temp\apps2\apps\FSLogix_Apps_2.9.7237.48865\x64\Release\FSLogixAppsSetup.exe" -Wait -ArgumentList '/install /quiet'
+Start-Process "C:\temp\apps\FSLogix_Apps_2.9.7349.30108\FSLogixAppsSetup.exe" -Wait -ArgumentList '/install /quiet'
+
 Write-Host "Install FSLogix Rule Editor"
-Start-Process "C:\temp\apps2\apps\FSLogix_Apps_2.9.7237.48865\x64\Release\FSLogixAppsRuleEditorSetup.exe" -Wait -ArgumentList '/install /quiet'
+Start-Process "C:\temp\apps\FSLogix_Apps_2.9.7349.30108\FSLogixAppsRuleEditorSetup.exe" -Wait -ArgumentList '/install /quiet'
+
 Write-Host "Install FSLogix Java Editor"
-Start-Process "C:\temp\apps2\apps\FSLogix_Apps_2.9.7237.48865\x64\Release\FSLogixAppsJavaRuleEditorSetup.exe" -Wait -ArgumentList '/install /quiet'
+Start-Process "C:\temp\apps\FSLogix_Apps_2.9.7349.30108\FSLogixAppsJavaRuleEditorSetup.exe" -Wait -ArgumentList '/install /quiet'
+
 #Write-Host "Install Office"
 #Start-Process "C:\temp\apps2\apps\files\Setup.exe" -Wait -ArgumentList '/configure C:\temp\apps2\files\configurationwvd.xml'
 #Write-Host "Install OneDrive"
 #Start-Process "C:\temp\apps2\apps\files\OneDriveSetup.exe" -Wait -ArgumentList '/allusers'
 Write-Host "Install Sepago"
 Start-Process "C:\temp\apps2\apps\ITPC-LogAnalyticsAgent\Azure Monitor for WVD\ITPC-LogAnalyticsAgent.exe" -Wait -ArgumentList '-install'
-Write-Host "Install Service Map"
-Start-Process "C:\temp\apps2\apps\InstallDependencyAgent-Windows.exe" -Wait -ArgumentList '/S'
+
+Write-Host "Install Dependency Agent"
+Start-Process "C:\temp\apps\InstallDependencyAgent-Windows.exe" -Wait -ArgumentList '/S'
+
+Write-Host "Install Acrobat Reader"
+Start-Process "C:\temp\apps\AcroRdrDC2001220041_en_US.exe" -Wait -ArgumentList '/sAll'
+
+Write-Host "Install PowerBI"
+Start-Process "C:\temp\apps\PBIDesktopSetup_x64.exe" -Wait -ArgumentList '-q -norestart ACCEPT_EULA=1'
+
+
 
 #--------------------------------Sysprep---------------------------#
 
