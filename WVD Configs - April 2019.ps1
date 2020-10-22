@@ -31,7 +31,7 @@
 #Before you unzip the file: Right click and select properties:  Click the box for Unblock, then click OK or apply.
 #Unzip the files to an Easy Directory.  I like to use c:\temp\RDPowershell
 #Open PowerShell (ISE): 
-
+#changes#1
 
 We will run these Run Commands during our testing – Use the login above:  
 
