@@ -68,7 +68,7 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 # you can use the downloaded exe as the uninstall path. 
 ###################################################################
 
-#update #20  
+#update #21  
 
 
 # Uninsall One Drive
