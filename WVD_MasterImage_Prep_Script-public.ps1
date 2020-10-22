@@ -70,6 +70,7 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 
 #update #20  
 
+
 # Uninsall One Drive
 Run C:\temp\apps\OneDriveSetup.exe /uninstall
 REG ADD "HKLM\Software\Microsoft\OneDrive" /v "AllUsersInstall" /t REG_DWORD /d 1 /reg:64
