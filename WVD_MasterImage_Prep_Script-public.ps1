@@ -67,7 +67,7 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 # Place in a temp folder - NOTE:  Change the folder path to your copy of OneDriveSetup.exe
 # you can use the downloaded exe as the uninstall path. 
 ###################################################################
-
+#update
 # Uninsall One Drive
 Run C:\temp\apps\OneDriveSetup.exe /uninstall
 REG ADD "HKLM\Software\Microsoft\OneDrive" /v "AllUsersInstall" /t REG_DWORD /d 1 /reg:64
