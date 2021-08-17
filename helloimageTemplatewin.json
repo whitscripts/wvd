@@ -77,7 +77,7 @@
                 "runElevated": false,
                 "inline": [
                     "mkdir c:\\buildActions",
-                    "echo Azure-Image-Builder-Was-Here  > c:\\buildActions\\buildActionsOutput_testupdate.txt"
+                    "echo Azure-Image-Builder-Was-Here  > c:\\buildActions\\buildActionsOutput.txt"
                 ]
                 },
                 {
